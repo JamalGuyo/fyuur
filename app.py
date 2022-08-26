@@ -82,8 +82,15 @@ class Show(db.Model):
     venue_id = db.Column(db.Integer, db.ForeignKey('Venue.id'), nullable=False)
     start_time = db.Column(db.DateTime, nullable=False)
 
-    artist = db.relationship('Artist', backref=db.backref('shows_artist', cascade='all, delete'), lazy=True)
-    venue = db.relationship('Venue', backref=db.backref('shows_venue', cascade='all, delete'), lazy=True)
+    artist = db.relationship('Artist',
+                             backref=db.backref('shows_artist',
+                                                cascade='all, delete'),
+                             lazy=True)
+    venue = db.relationship('Venue',
+                            backref=db.backref('shows_venue',
+                                               cascade='all, delete'),
+                            lazy=True)
+
 
 # TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
 
@@ -121,31 +128,43 @@ def index():
 def venues():
     # TODO: replace with real venues data.
     #       num_upcoming_shows should be aggregated based on number of upcoming shows per venue.
-    data = [{
-        "city":
-        "San Francisco",
-        "state":
-        "CA",
-        "venues": [{
-            "id": 1,
-            "name": "The Musical Hop",
-            "num_upcoming_shows": 0,
-        }, {
-            "id": 3,
-            "name": "Park Square Live Music & Coffee",
-            "num_upcoming_shows": 1,
-        }]
-    }, {
-        "city":
-        "New York",
-        "state":
-        "NY",
-        "venues": [{
-            "id": 2,
-            "name": "The Dueling Pianos Bar",
-            "num_upcoming_shows": 0,
-        }]
-    }]
+    # data = [{
+    #     "city":
+    #     "San Francisco",
+    #     "state":
+    #     "CA",
+    #     "venues": [{
+    #         "id": 1,
+    #         "name": "The Musical Hop",
+    #         "num_upcoming_shows": 0,
+    #     }, {
+    #         "id": 3,
+    #         "name": "Park Square Live Music & Coffee",
+    #         "num_upcoming_shows": 1,
+    #     }]
+    # }, {
+    #     "city":
+    #     "New York",
+    #     "state":
+    #     "NY",
+    #     "venues": [{
+    #         "id": 2,
+    #         "name": "The Dueling Pianos Bar",
+    #         "num_upcoming_shows": 0,
+    #     }]
+    # }]
+    city_state = db.session.query(Venue.city, Venue.state).group_by(
+        Venue.state, Venue.city).all()
+    data = []
+    for cs in city_state:
+        venues = db.session.query(Venue.id, Venue.name).filter(
+            Venue.city == cs[0], Venue.state == cs[1]).all()
+        data.append({"city": cs[0], "state": cs[1], "venues": []})
+    for venue in venues:
+        data[-1]["venues"].append({
+            "id": venue[0],
+            "name": venue[1],
+        })
     return render_template('pages/venues.html', areas=data)
 
 
@@ -195,7 +214,7 @@ def show_venue(venue_id):
         "seeking_description":
         "We are on the lookout for a local artist to play every two weeks. Please call us.",
         "image_link":
-        "https://images.unsplash.com/photo-1543900694-133f37abaaa5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=400&q=60",
+        "\d",
         "past_shows": [{
             "artist_id": 4,
             "artist_name": "Guns N Petals",
