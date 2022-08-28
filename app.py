@@ -353,7 +353,6 @@ def show_artist(artist_id):
 def edit_artist(artist_id):
     form = ArtistForm()
     artist_selected = Artist.query.get(artist_id)
-    checked = ''
     artist = {
         "id": artist_selected.id,
         "name": artist_selected.name,
@@ -367,13 +366,9 @@ def edit_artist(artist_id):
         "seeking_description": artist_selected.seeking_description,
         "image_link": artist_selected.image_link
     }
-    if artist_selected.seeking_venue:
-        checked = 'on'
+
     # TODO: populate form with fields from artist with ID <artist_id>
-    return render_template('forms/edit_artist.html',
-                           form=form,
-                           artist=artist,
-                           checked=checked)
+    return render_template('forms/edit_artist.html', form=form, artist=artist)
 
 
 @app.route('/artists/<int:artist_id>/edit', methods=['POST'])
@@ -389,7 +384,8 @@ def edit_artist_submission(artist_id):
     artist.phone = request.form['phone']
     artist.website = request.form['website']
     artist.facebook_link = request.form['facebook_link']
-    artist.seeking_venue = request.form['seeking_venue']
+    seeking_venue = True if request.form['seeking_venue'] == 'y' else False
+    artist.seeking_venue = seeking_venue
     artist.seeking_description = request.form['seeking_description']
     artist.image_link = request.form['image_link']
 
@@ -401,7 +397,7 @@ def edit_artist_submission(artist_id):
         flash(f'Artist {artist.name} isn\'t updated successfully.')
     finally:
         db.session.close()
-    return redirect(url_for('show_artist', artist_id=artist_id))
+    return redirect(url_for('show_artist', artist_id=artist.id))
 
 
 @app.route('/venues/<int:venue_id>/edit', methods=['GET'])
