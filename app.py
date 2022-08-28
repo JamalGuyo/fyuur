@@ -353,6 +353,7 @@ def show_artist(artist_id):
 def edit_artist(artist_id):
     form = ArtistForm()
     artist_selected = Artist.query.get(artist_id)
+    checked = ''
     artist = {
         "id": artist_selected.id,
         "name": artist_selected.name,
@@ -366,8 +367,13 @@ def edit_artist(artist_id):
         "seeking_description": artist_selected.seeking_description,
         "image_link": artist_selected.image_link
     }
+    if artist_selected.seeking_venue:
+        checked = 'on'
     # TODO: populate form with fields from artist with ID <artist_id>
-    return render_template('forms/edit_artist.html', form=form, artist=artist)
+    return render_template('forms/edit_artist.html',
+                           form=form,
+                           artist=artist,
+                           checked=checked)
 
 
 @app.route('/artists/<int:artist_id>/edit', methods=['POST'])
@@ -375,6 +381,26 @@ def edit_artist_submission(artist_id):
     # TODO: take values from the form submitted, and update existing
     # artist record with ID <artist_id> using the new attributes
 
+    artist = Artist.query.get(artist_id)
+    artist.name = request.form['name']
+    artist.genres = request.form['genres']
+    artist.city = request.form['city']
+    artist.state = request.form['state']
+    artist.phone = request.form['phone']
+    artist.website = request.form['website']
+    artist.facebook_link = request.form['facebook_link']
+    artist.seeking_venue = request.form['seeking_venue']
+    artist.seeking_description = request.form['seeking_description']
+    artist.image_link = request.form['image_link']
+
+    try:
+        db.session.commit()
+        flash(f'Artist {artist.name} is updated successfully')
+    except:
+        db.session.rollback()
+        flash(f'Artist {artist.name} isn\'t updated successfully.')
+    finally:
+        db.session.close()
     return redirect(url_for('show_artist', artist_id=artist_id))
 
 
