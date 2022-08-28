@@ -426,6 +426,24 @@ def edit_venue(venue_id):
 def edit_venue_submission(venue_id):
     # TODO: take values from the form submitted, and update existing
     # venue record with ID <venue_id> using the new attributes
+    venue = Venue.query.get(venue_id)
+    venue.name = request.form['name']
+    venue.genres = request.form['genres']
+    venue.address = request.form['address']
+    venue.city = request.form['city']
+    venue.state = request.form['state']
+    venue.phone = request.form['phone']
+    venue.website = request.form['website']
+    venue.facebook_link = request.form['facebook_link']
+    venue.seeking_talent = request.form['seeking_talent']
+    venue.seeking_description = request.form['seeking_description']
+    venue.image_link = request.form['image_link']
+    try:
+        db.session.commit()
+        flash(f"Venue {request.form['name']} was successfully updated")
+    except:
+        db.session.rollback()
+        flash(f"An error occurred. Venue {venue.name} could not be updated")
     return redirect(url_for('show_venue', venue_id=venue_id))
 
 
